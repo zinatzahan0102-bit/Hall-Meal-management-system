@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meal_management/core/data/app_store.dart';
+import 'package:meal_management/core/data/default_menu.dart';
 import 'package:meal_management/core/theme/app_palette.dart';
 import 'package:meal_management/core/widgets/custom_button.dart';
 
@@ -39,11 +39,14 @@ class _MenuDetailPageState extends State<MenuDetailPage> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(18),
-            child: Image.network(
-              widget.meal.imageUrl,
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
+            child: Hero(
+              tag: widget.meal.title,
+              child: Image.network(
+                widget.meal.imageUrl,
+                height: 220,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(height: 14),

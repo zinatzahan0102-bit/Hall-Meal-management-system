@@ -121,7 +121,7 @@ class _LoginpageState extends State<Loginpage> with TickerProviderStateMixin {
                         right: 80,
                         child: _FloatingElement(
                           animation: _backgroundAnimation,
-                          delay: 1.0,
+                          delay: 0.8,
                         ),
                       ),
 
