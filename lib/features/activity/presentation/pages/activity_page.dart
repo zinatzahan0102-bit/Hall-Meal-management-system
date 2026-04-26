@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/theme/app_palette.dart';
 import 'package:meal_management/features/auth/data/auth_service.dart';
@@ -15,6 +16,7 @@ class _ActivityPageState extends State<ActivityPage> {
   final FirestoreService _firestore = FirestoreService();
   Stream? _mealsStream;
   Stream? _complaintsStream;
+  Stream? _reviewsStream;
 
   @override
   void initState() {
@@ -22,7 +24,8 @@ class _ActivityPageState extends State<ActivityPage> {
     final user = AuthService().currentUser;
     if (user != null) {
       _mealsStream = _firestore.getMeals(user.uid);
-      // For complaints, we can filter the meals stream or create a separate collection
+      _complaintsStream = _firestore.getComplaints(user.uid);
+      _reviewsStream = _firestore.getReviews(user.uid);
     }
   }
 
@@ -46,7 +49,7 @@ class _ActivityPageState extends State<ActivityPage> {
         body: TabBarView(
           children: [
             _MealHistoryTab(stream: _mealsStream),
-            _ReviewsTab(),
+            _ReviewsTab(stream: _reviewsStream),
             _ComplaintsTab(stream: _complaintsStream),
           ],
         ),
@@ -100,32 +103,80 @@ class _MealHistoryTab extends StatelessWidget {
 }
 
 class _ReviewsTab extends StatelessWidget {
+  final Stream? stream;
+
+  const _ReviewsTab({this.stream});
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _ReviewTile(
-          title: 'Lunch was great',
-          subtitle: 'Rice was soft and chicken was tasty.',
-          rating: 5,
-        ),
-        _ReviewTile(
-          title: 'Dinner feedback',
-          subtitle: 'Could be less oily next time.',
-          rating: 3,
-        ),
-        const SizedBox(height: 8),
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const DailyReviewPage()),
+    if (stream == null) {
+      return const Center(child: Text('No reviews data'));
+    }
+
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: stream as Stream<List<Map<String, dynamic>>>?,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('No reviews submitted'),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const DailyReviewPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.add_comment_rounded),
+                  label: const Text('Write new review'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final reviews = snapshot.data!;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: reviews.length + 1,
+          itemBuilder: (context, index) {
+            if (index == reviews.length) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const DailyReviewPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.add_comment_rounded),
+                  label: const Text('Write new review'),
+                ),
+              );
+            }
+
+            final review = reviews[index];
+            final rating = review['rating'] as int? ?? 0;
+            final feedback = review['feedback'] as String? ?? '';
+            final timestamp = review['timestamp'] as Timestamp?;
+            final dateStr = timestamp != null
+                ? "${timestamp.toDate().day}/${timestamp.toDate().month}/${timestamp.toDate().year}"
+                : "Unknown date";
+
+            return _ReviewTile(
+              title: 'Review on $dateStr',
+              subtitle: feedback,
+              rating: rating,
             );
           },
-          icon: const Icon(Icons.add_comment_rounded),
-          label: const Text('Write new review'),
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -184,26 +235,23 @@ class _ComplaintsTab extends StatelessWidget {
       return const Center(child: Text('No complaints data'));
     }
 
-    return StreamBuilder(
-      stream: stream,
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: stream as Stream<List<Map<String, dynamic>>>?,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No complaints submitted'));
         }
 
-        final complaints = snapshot.data!.docs.where((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return data['type'] == 'complaint';
-        }).toList();
+        final complaints = snapshot.data!;
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: complaints.length,
           itemBuilder: (context, index) {
-            final complaint = complaints[index].data() as Map<String, dynamic>;
+            final complaint = complaints[index];
             final type = complaint['complaintType'] ?? 'Unknown';
             final status = complaint['status'] ?? 'Pending';
             final isResolved = status == 'Resolved';
