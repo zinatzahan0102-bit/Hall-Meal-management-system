@@ -38,7 +38,9 @@ class _ProfilePageState extends State<ProfilePage> {
           'email': user.email ?? 'Not set',
         };
       }
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -47,10 +49,12 @@ class _ProfilePageState extends State<ProfilePage> {
     if (user != null) {
       final preferences = await _firestoreService.getUserPreferences(user.uid);
       if (preferences != null) {
-        setState(() {
-          _notificationOn = preferences['notifications'] ?? true;
-          _darkMode = preferences['darkMode'] ?? false;
-        });
+        if (mounted) {
+          setState(() {
+            _notificationOn = preferences['notifications'] ?? true;
+            _darkMode = preferences['darkMode'] ?? false;
+          });
+        }
       }
     }
   }
@@ -202,23 +206,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     await _saveUserPreferences();
                   },
                 ),
-                SwitchListTile.adaptive(
-                  value: _darkMode,
-                  activeThumbColor: AppPallate.primary,
-                  title: const Text('Dark mode'),
-                  onChanged: (value) async {
-                    setState(() {
-                      _darkMode = value;
-                    });
-                    await _saveUserPreferences();
-                  },
-                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: AppPallate.danger),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppPallate.danger,
+              minimumSize: const Size.fromHeight(50),
+            ),
             onPressed: _logout,
             icon: const Icon(Icons.logout_rounded),
             label: const Text('Logout'),

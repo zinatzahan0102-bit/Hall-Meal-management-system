@@ -1,8 +1,41 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Map<int, Map<String, dynamic>?> _menuCache = {};
+
+  // Upload image to Cloudinary and return download URL
+  Future<String?> uploadImage(XFile file) async {
+    try {
+      const cloudName = 'doharq576';
+      const uploadPreset = 'rq3xnpqb';
+
+      final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+      final request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(await http.MultipartFile.fromPath('file', file.path));
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.toBytes();
+        final responseString = String.fromCharCodes(responseData);
+        final json = jsonDecode(responseString);
+        return json['secure_url'] as String?;
+      } else {
+        final responseData = await response.stream.toBytes();
+        final responseString = String.fromCharCodes(responseData);
+        debugPrint('Error uploading to Cloudinary: ${response.statusCode} - $responseString');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error uploading image: $e');
+      return null;
+    }
+  }
 
   // Add user data
   Future<void> addUser(String userId, Map<String, dynamic> userData) async {
@@ -51,7 +84,6 @@ class FirestoreService {
   Future<void> addMeal(String userId, Map<String, dynamic> mealData) async {
     try {
       final date = mealData['date'] as String;
-      final status = mealData['status'] as bool;
 
       // Check if meal already exists for this date
       final existingMeals = await _firestore
@@ -64,7 +96,7 @@ class FirestoreService {
       if (existingMeals.docs.isNotEmpty) {
         // Update existing meal
         await existingMeals.docs.first.reference.update({
-          'status': status,
+          ...mealData,
           'timestamp': FieldValue.serverTimestamp(),
         });
         debugPrint('Meal updated for user $userId on date $date');
@@ -119,13 +151,46 @@ class FirestoreService {
           .where('status', isEqualTo: true)
           .get();
 
-      int totalMeals = mealsSnapshot.docs.length;
-      double mealRate = 75.0; // Could be configurable
-      double totalBill = totalMeals * mealRate;
-      double monthlyLimit = 1150.0; // Could be configurable
+      // Read settings for fallback
+      final settingsDoc = await _firestore.collection('config').doc('meal_settings').get();
+      double mealRate = 75.0;
+      double monthlyLimit = 1150.0;
+      if (settingsDoc.exists) {
+        final data = settingsDoc.data();
+        mealRate = (data?['mealRate'] ?? 75.0).toDouble();
+        monthlyLimit = (data?['monthlyLimit'] ?? 1150.0).toDouble();
+      }
+
+      double totalBill = 0.0;
+      int totalMealsCount = 0;
+
+      for (var doc in mealsSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final meals = data['meals'] as Map<String, dynamic>?;
+        if (meals != null) {
+          final rates = meals['rates'] as Map<String, dynamic>?;
+          
+          if (meals['breakfast'] == true) {
+            totalMealsCount++;
+            totalBill += (rates?['breakfast'] ?? mealRate).toDouble();
+          }
+          if (meals['lunch'] == true) {
+            totalMealsCount++;
+            totalBill += (rates?['lunch'] ?? mealRate).toDouble();
+          }
+          if (meals['dinner'] == true) {
+            totalMealsCount++;
+            totalBill += (rates?['dinner'] ?? mealRate).toDouble();
+          }
+        } else {
+          // Fallback for old meals without details map
+          totalMealsCount++;
+          totalBill += mealRate;
+        }
+      }
 
       return {
-        'totalMeals': totalMeals,
+        'totalMeals': totalMealsCount,
         'totalBill': totalBill,
         'remaining': monthlyLimit - totalBill,
         'mealRate': mealRate,
@@ -139,6 +204,62 @@ class FirestoreService {
         'mealRate': 75.0,
       };
     }
+  }
+
+  // Get meal stats stream for user
+  Stream<Map<String, dynamic>> getMealStatsStream(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('meals')
+        .where('status', isEqualTo: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          // Read settings for fallback
+          final settingsDoc = await _firestore.collection('config').doc('meal_settings').get();
+          double mealRate = 75.0;
+          double monthlyLimit = 1150.0;
+          if (settingsDoc.exists) {
+            final data = settingsDoc.data();
+            mealRate = (data?['mealRate'] ?? 75.0).toDouble();
+            monthlyLimit = (data?['monthlyLimit'] ?? 1150.0).toDouble();
+          }
+
+          double totalBill = 0.0;
+          int totalMealsCount = 0;
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            final meals = data['meals'] as Map<String, dynamic>?;
+            if (meals != null) {
+              final rates = meals['rates'] as Map<String, dynamic>?;
+              
+              if (meals['breakfast'] == true) {
+                totalMealsCount++;
+                totalBill += (rates?['breakfast'] ?? mealRate).toDouble();
+              }
+              if (meals['lunch'] == true) {
+                totalMealsCount++;
+                totalBill += (rates?['lunch'] ?? mealRate).toDouble();
+              }
+              if (meals['dinner'] == true) {
+                totalMealsCount++;
+                totalBill += (rates?['dinner'] ?? mealRate).toDouble();
+              }
+            } else {
+              // Fallback for old meals without details map
+              totalMealsCount++;
+              totalBill += mealRate;
+            }
+          }
+
+          return {
+            'totalMeals': totalMealsCount,
+            'totalBill': totalBill,
+            'remaining': monthlyLimit - totalBill,
+            'mealRate': mealRate,
+          };
+        });
   }
 
   // Add complaint
@@ -261,6 +382,117 @@ class FirestoreService {
     } catch (e) {
       debugPrint('Error getting user preferences: $e');
       return null;
+    }
+  }
+
+  // Add a meal review
+  Future<void> addReview(String userId, Map<String, dynamic> reviewData) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('reviews')
+          .add({
+        ...reviewData,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      debugPrint('Review added for user $userId');
+    } catch (e) {
+      debugPrint('Error adding review to Firestore: $e');
+      rethrow;
+    }
+  }
+
+  // Get reviews stream
+  Stream<List<Map<String, dynamic>>> getReviews(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('reviews')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => {...doc.data(), 'id': doc.id})
+            .toList());
+  }
+
+  // Get menu for a specific weekday (1 = Monday, 7 = Sunday)
+  Stream<Map<String, dynamic>?> getMenu(int weekday) {
+    return _firestore
+        .collection('menus')
+        .doc(weekday.toString())
+        .snapshots()
+        .map((doc) => doc.exists ? doc.data() : null);
+  }
+
+  // Get menu future for a specific weekday
+  Future<Map<String, dynamic>?> getMenuFuture(int weekday) async {
+    if (_menuCache.containsKey(weekday)) {
+      return _menuCache[weekday];
+    }
+    final doc = await _firestore.collection('menus').doc(weekday.toString()).get();
+    final data = doc.exists ? doc.data() : null;
+    _menuCache[weekday] = data;
+    return data;
+  }
+
+  // Update menu for a specific weekday
+  Future<void> updateMenu(int weekday, Map<String, dynamic> menuData) async {
+    try {
+      await _firestore
+          .collection('menus')
+          .doc(weekday.toString())
+          .set(menuData, SetOptions(merge: true));
+      debugPrint('Menu updated for weekday $weekday');
+    } catch (e) {
+      debugPrint('Error updating menu in Firestore: $e');
+      rethrow;
+    }
+  }
+
+  // Get admin passkey from Firestore
+  Future<String?> getAdminPassKey() async {
+    try {
+      final doc = await _firestore.collection('config').doc('admin').get();
+      if (doc.exists) {
+        final data = doc.data();
+        return data?['passkey'] as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting admin passkey: $e');
+      return null;
+    }
+  }
+
+  // Get meal settings stream
+  Stream<Map<String, dynamic>> getMealSettingsStream() {
+    return _firestore
+        .collection('config')
+        .doc('meal_settings')
+        .snapshots()
+        .map((doc) {
+          if (doc.exists) {
+            return doc.data() as Map<String, dynamic>;
+          }
+          return {
+            'mealRate': 75.0,
+            'monthlyLimit': 1150.0,
+          };
+        });
+  }
+
+  // Update meal settings
+  Future<void> updateMealSettings(Map<String, dynamic> settings) async {
+    try {
+      await _firestore
+          .collection('config')
+          .doc('meal_settings')
+          .set(settings, SetOptions(merge: true));
+      debugPrint('Meal settings updated');
+    } catch (e) {
+      debugPrint('Error updating meal settings: $e');
+      rethrow;
     }
   }
 }
