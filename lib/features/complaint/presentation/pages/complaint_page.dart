@@ -44,11 +44,16 @@ class _ComplaintPageState extends State<ComplaintPage> {
     try {
       final user = AuthService().currentUser;
       if (user != null) {
+        String? imageUrl;
+        if (_selectedImage != null) {
+          imageUrl = await FirestoreService().uploadImage(_selectedImage!);
+        }
+
         await FirestoreService().addComplaint(user.uid, {
           'complaintType': _complaintType,
           'description': _descriptionController.text.trim(),
-          'hasImage': _selectedImage != null,
-          'imagePath': _selectedImage?.path,
+          'hasImage': imageUrl != null,
+          'imageUrl': imageUrl,
         });
 
         if (mounted) {
@@ -90,6 +95,7 @@ class _ComplaintPageState extends State<ComplaintPage> {
               items: const [
                 DropdownMenuItem(value: 'Food Quality', child: Text('Food Quality')),
                 DropdownMenuItem(value: 'Service', child: Text('Service')),
+                DropdownMenuItem(value: 'Suggestion', child: Text('Suggestion')),
                 DropdownMenuItem(value: 'Others', child: Text('Others')),
               ],
               onChanged: (value) {

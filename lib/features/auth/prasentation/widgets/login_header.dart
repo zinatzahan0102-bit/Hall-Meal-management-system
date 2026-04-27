@@ -85,7 +85,7 @@ class _LoginHeaderState extends State<LoginHeader> with TickerProviderStateMixin
             const SizedBox(height: 18),
             // Animated welcome text
             AnimatedOpacity(
-              opacity: _textAnimation.value,
+              opacity: _textAnimation.value.clamp(0.0, 1.0),
               duration: const Duration(milliseconds: 500),
               child: Transform.translate(
                 offset: Offset(-20 * (1 - _textAnimation.value), 0),
@@ -103,7 +103,7 @@ class _LoginHeaderState extends State<LoginHeader> with TickerProviderStateMixin
             const SizedBox(height: 10),
             // Animated subtitle
             AnimatedOpacity(
-              opacity: _textAnimation.value,
+              opacity: _textAnimation.value.clamp(0.0, 1.0),
               duration: const Duration(milliseconds: 500),
               child: Transform.translate(
                 offset: Offset(20 * (1 - _textAnimation.value), 0),
@@ -120,7 +120,7 @@ class _LoginHeaderState extends State<LoginHeader> with TickerProviderStateMixin
             const SizedBox(height: 22),
             // Animated decorative container
             AnimatedOpacity(
-              opacity: _textAnimation.value,
+              opacity: _textAnimation.value.clamp(0.0, 1.0),
               duration: const Duration(milliseconds: 500),
               child: Transform.scale(
                 scale: 0.9 + (0.1 * _textAnimation.value),
