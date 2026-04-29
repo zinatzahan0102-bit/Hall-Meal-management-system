@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/theme/app_palette.dart';
+import 'package:meal_management/features/auth/data/auth_service.dart';
 import 'package:meal_management/core/widgets/custom_button.dart';
 import 'package:meal_management/core/widgets/input_field.dart';
 import 'package:meal_management/core/widgets/rating_stars.dart';
@@ -88,14 +90,26 @@ class _DailyReviewPageState extends State<DailyReviewPage> {
               Expanded(
                 child: CustomButton(
                   label: 'Submit',
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(_rating == 0
-                            ? 'Thanks! Feedback submitted.'
-                            : 'Thanks for rating $_rating star(s).'),
-                      ),
-                    );
+                  onPressed: () async {
+                    final user = AuthService().currentUser;
+                    if (user != null) {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(context);
+
+                      await FirestoreService().addReview(user.uid, {
+                        'rating': _rating,
+                        'feedback': _feedbackController.text.trim(),
+                      });
+                      
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(_rating == 0
+                              ? 'Thanks! Feedback submitted.'
+                              : 'Thanks for rating $_rating star(s).'),
+                        ),
+                      );
+                      navigator.pop();
+                    }
                   },
                 ),
               ),
