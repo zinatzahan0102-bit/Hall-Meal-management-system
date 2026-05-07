@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_management/core/theme/app_palette.dart';
 import 'package:meal_management/features/auth/data/auth_service.dart';
-import 'package:meal_management/features/auth/prasentation/pages/admin_login_page.dart';
 import 'package:meal_management/features/navigation/presentation/pages/main_navigation_page.dart';
 
 class LoginForm extends StatefulWidget {
@@ -153,7 +152,7 @@ class _LoginFormState extends State<LoginForm> with TickerProviderStateMixin {
             children: [
               // Title animation
               AnimatedOpacity(
-                opacity: _animations[0].value,
+                opacity: _animations[0].value.clamp(0.0, 1.0),
                 duration: const Duration(milliseconds: 300),
                 child: Transform.translate(
                   offset: Offset(0, 20 * (1 - _animations[0].value)),
@@ -170,7 +169,7 @@ class _LoginFormState extends State<LoginForm> with TickerProviderStateMixin {
               const SizedBox(height: 8),
               // Subtitle animation
               AnimatedOpacity(
-                opacity: _animations[1].value,
+                opacity: _animations[1].value.clamp(0.0, 1.0),
                 duration: const Duration(milliseconds: 300),
                 child: Transform.translate(
                   offset: Offset(0, 15 * (1 - _animations[1].value)),
@@ -186,7 +185,7 @@ class _LoginFormState extends State<LoginForm> with TickerProviderStateMixin {
               const SizedBox(height: 24),
               // Email field animation
               AnimatedOpacity(
-                opacity: _animations[2].value,
+                opacity: _animations[2].value.clamp(0.0, 1.0),
                 duration: const Duration(milliseconds: 300),
                 child: Transform.translate(
                   offset: Offset(-30 * (1 - _animations[2].value), 0),
@@ -203,7 +202,7 @@ class _LoginFormState extends State<LoginForm> with TickerProviderStateMixin {
               const SizedBox(height: 16),
               // Password field animation
               AnimatedOpacity(
-                opacity: _animations[3].value,
+                opacity: _animations[3].value.clamp(0.0, 1.0),
                 duration: const Duration(milliseconds: 300),
                 child: Transform.translate(
                   offset: Offset(30 * (1 - _animations[3].value), 0),
@@ -232,7 +231,7 @@ class _LoginFormState extends State<LoginForm> with TickerProviderStateMixin {
               const SizedBox(height: 12),
               // Forgot password animation
               AnimatedOpacity(
-                opacity: _animations[4].value,
+                opacity: _animations[4].value.clamp(0.0, 1.0),
                 duration: const Duration(milliseconds: 300),
                 child: Transform.translate(
                   offset: Offset(0, 10 * (1 - _animations[4].value)),
@@ -254,7 +253,7 @@ class _LoginFormState extends State<LoginForm> with TickerProviderStateMixin {
               const SizedBox(height: 4),
               // Login button animation
               AnimatedOpacity(
-                opacity: _animations[5].value,
+                opacity: _animations[5].value.clamp(0.0, 1.0),
                 duration: const Duration(milliseconds: 300),
                 child: Transform.scale(
                   scale: 0.8 + (0.2 * _animations[5].value),
@@ -267,31 +266,6 @@ class _LoginFormState extends State<LoginForm> with TickerProviderStateMixin {
                 ),
               ),
               const SizedBox(height: 24),
-              // Admin login button animation
-              AnimatedOpacity(
-                opacity: _animations[5].value,
-                duration: const Duration(milliseconds: 300),
-                child: Transform.translate(
-                  offset: Offset(0, 20 * (1 - _animations[5].value)),
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const AdminLoginPage()),
-                      );
-                    },
-                    icon: const Icon(Icons.admin_panel_settings_rounded),
-                    label: const Text('Admin Login'),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50),
-                      foregroundColor: AppPallate.primary,
-                      side: const BorderSide(color: AppPallate.primary),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         );
