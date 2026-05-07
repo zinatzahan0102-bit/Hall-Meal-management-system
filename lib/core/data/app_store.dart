@@ -149,6 +149,18 @@ class AppStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setMealEntry(int weekday, MealType type, MealEntry entry) {
+    if (!_weeklyMenus.containsKey(weekday)) {
+      _weeklyMenus[weekday] = _defaultDayMenu(
+        breakfastItems: ['Default Breakfast'],
+        lunchItems: ['Default Lunch'],
+        dinnerItems: ['Default Dinner'],
+      );
+    }
+    _weeklyMenus[weekday]!.update(type, entry);
+    notifyListeners();
+  }
+
   void updateDayMeal({
     required int weekday,
     required MealType mealType,

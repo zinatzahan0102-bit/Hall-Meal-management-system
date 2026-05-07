@@ -1,9 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/theme/app_palette.dart';
+import 'package:meal_management/features/auth/data/auth_service.dart';
 import 'package:meal_management/features/review/presentation/pages/daily_review_page.dart';
 
-class ActivityPage extends StatelessWidget {
+class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
+
+  @override
+  State<ActivityPage> createState() => _ActivityPageState();
+}
+
+class _ActivityPageState extends State<ActivityPage> {
+  final FirestoreService _firestore = FirestoreService();
+  Stream? _mealsStream;
+  Stream? _complaintsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = AuthService().currentUser;
+    if (user != null) {
+      _mealsStream = _firestore.getMeals(user.uid);
+      // For complaints, we can filter the meals stream or create a separate collection
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +45,9 @@ class ActivityPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            _MealHistoryTab(),
+            _MealHistoryTab(stream: _mealsStream),
             _ReviewsTab(),
-            _ComplaintsTab(),
+            _ComplaintsTab(stream: _complaintsStream),
           ],
         ),
       ),
@@ -35,48 +56,43 @@ class ActivityPage extends StatelessWidget {
 }
 
 class _MealHistoryTab extends StatelessWidget {
+  final Stream? stream;
+
+  const _MealHistoryTab({this.stream});
+
   @override
   Widget build(BuildContext context) {
-    final history = [
-      ('20 Apr 2026', true),
-      ('19 Apr 2026', false),
-      ('18 Apr 2026', true),
-      ('17 Apr 2026', true),
-    ];
+    if (stream == null) {
+      return const Center(child: Text('No data available'));
+    }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: history.length,
-      itemBuilder: (context, index) {
-        final item = history[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: item.$2 ? AppPallate.success : AppPallate.danger,
-                  shape: BoxShape.circle,
-                ),
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: stream as Stream<List<Map<String, dynamic>>>?,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No meal history'));
+        }
+
+        final meals = snapshot.data!;
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: meals.length,
+          itemBuilder: (context, index) {
+            final meal = meals[index];
+            final date = meal['date'] ?? 'Unknown';
+            final status = meal['status'] ?? false;
+            return ListTile(
+              leading: Icon(
+                status ? Icons.check_circle : Icons.cancel,
+                color: status ? Colors.green : Colors.red,
               ),
-              const SizedBox(width: 10),
-              Expanded(child: Text(item.$1)),
-              Text(
-                item.$2 ? 'ON' : 'OFF',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: item.$2 ? AppPallate.success : AppPallate.danger,
-                ),
-              ),
-            ],
-          ),
+              title: Text('Meal on $date'),
+              subtitle: Text(status ? 'Active' : 'Inactive'),
+            );
+          },
         );
       },
     );
@@ -158,63 +174,78 @@ class _ReviewTile extends StatelessWidget {
 }
 
 class _ComplaintsTab extends StatelessWidget {
+  final Stream? stream;
+
+  const _ComplaintsTab({this.stream});
+
   @override
   Widget build(BuildContext context) {
-    final complaints = [
-      ('Food Quality', 'Pending'),
-      ('Service', 'Resolved'),
-      ('Others', 'Pending'),
-    ];
+    if (stream == null) {
+      return const Center(child: Text('No complaints data'));
+    }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: complaints.length,
-      itemBuilder: (context, index) {
-        final complaint = complaints[index];
-        final isResolved = complaint.$2 == 'Resolved';
+    return StreamBuilder(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No complaints submitted'));
+        }
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      complaint.$1,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Submitted recently',
-                      style: TextStyle(color: AppPallate.textSecondary, fontSize: 12),
-                    ),
-                  ],
-                ),
+        final complaints = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data['type'] == 'complaint';
+        }).toList();
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: complaints.length,
+          itemBuilder: (context, index) {
+            final complaint = complaints[index].data() as Map<String, dynamic>;
+            final type = complaint['complaintType'] ?? 'Unknown';
+            final status = complaint['status'] ?? 'Pending';
+            final isResolved = status == 'Resolved';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: isResolved ? const Color(0xFFDDEEDC) : const Color(0xFFFFF0D8),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  complaint.$2,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isResolved ? AppPallate.success : const Color(0xFFB87000),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(type, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 4),
+                        Text(complaint['description'] ?? '', style: const TextStyle(color: AppPallate.textSecondary)),
+                      ],
+                    ),
                   ),
-                ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isResolved ? AppPallate.success.withValues(alpha: 0.1) : AppPallate.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      status,
+                      style: TextStyle(
+                        color: isResolved ? AppPallate.success : AppPallate.warning,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

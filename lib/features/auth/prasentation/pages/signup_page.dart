@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:meal_management/core/data/app_store.dart';
+import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/widgets/custom_button.dart';
 import 'package:meal_management/core/widgets/input_field.dart';
-import 'package:meal_management/features/navigation/presentation/pages/main_navigation_page.dart';
+import 'package:meal_management/features/auth/data/auth_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -18,6 +18,7 @@ class _SignupPageState extends State<SignupPage> {
   final _roomController = TextEditingController();
   final _idController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,6 +28,69 @@ class _SignupPageState extends State<SignupPage> {
     _idController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _signUp() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await AuthService().signUp(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (user != null) {
+        // Save user data to Firestore
+        try {
+          await FirestoreService().addUser(user.uid, {
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'room': _roomController.text.trim(),
+            'id': _idController.text.trim(),
+            'createdAt': DateTime.now(),
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Account created successfully')),
+            );
+            // Navigate back to let AuthWrapper handle navigation
+            Navigator.of(context).pop();
+          }
+        } catch (firestoreError) {
+          // If Firestore save fails, delete the auth user and show error
+          try {
+            await user.delete();
+          } catch (deleteError) {
+            debugPrint('Failed to delete auth user: $deleteError');
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to save user data: ${firestoreError.toString()}')),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sign up failed')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -52,7 +116,7 @@ class _SignupPageState extends State<SignupPage> {
               hint: 'Email',
               controller: _emailController,
               prefixIcon: Icons.email_outlined,
-              validator: _requiredValidator,
+              validator: _emailValidator,
             ),
             const SizedBox(height: 12),
             InputField(
@@ -73,28 +137,12 @@ class _SignupPageState extends State<SignupPage> {
               hint: 'Password',
               controller: _passwordController,
               prefixIcon: Icons.lock_outline,
-              validator: _requiredValidator,
+              validator: _passwordValidator,
             ),
             const SizedBox(height: 16),
             CustomButton(
-              label: 'Create account',
-              onPressed: () {
-                if (_formKey.currentState?.validate() ?? false) {
-                  AppStore.instance.registerUser(
-                    AppUser(
-                      name: _nameController.text.trim(),
-                      email: _emailController.text.trim(),
-                      room: _roomController.text.trim(),
-                      id: _idController.text.trim(),
-                    ),
-                  );
-
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainNavigationPage()),
-                    (route) => false,
-                  );
-                }
-              },
+              label: _isLoading ? 'Creating...' : 'Create account',
+              onPressed: _isLoading ? null : () => _signUp(),
             ),
           ],
         ),
@@ -105,6 +153,24 @@ class _SignupPageState extends State<SignupPage> {
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'This field is required';
+    }
+    return null;
+  }
+
+  String? _emailValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Email is required';
+    }
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(value)) {
+      return 'Enter a valid email';
+    }
+    return null;
+  }
+
+  String? _passwordValidator(String? value) {
+    if (value == null || value.length < 6) {
+      return 'Password must be at least 6 characters';
     }
     return null;
   }

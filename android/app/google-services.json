@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "163603260008",
+    "project_id": "hall-meal-manage",
+    "storage_bucket": "hall-meal-manage.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:163603260008:android:e9470c0ddfd6b2c95751dd",
+        "android_client_info": {
+          "package_name": "com.example.meal_management"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "163603260008-kipk9jvtfkc45s3a00pjnopocokqbovn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXjP4JEvxxqEplpFR2oAk4ADHXHNlZjiY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "163603260008-kipk9jvtfkc45s3a00pjnopocokqbovn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

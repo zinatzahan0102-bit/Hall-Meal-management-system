@@ -12,7 +12,7 @@ class CustomButton extends StatelessWidget {
   });
 
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData? icon;
   final bool fullWidth;
   final Color? backgroundColor;

@@ -11,11 +11,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_management/main.dart';
 
 void main() {
-  testWidgets('Login screen smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Firebase not available screen test', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp(firebaseInitialized: false));
 
-    expect(find.text('Welcome back'), findsOneWidget);
-    expect(find.text('Sign in'), findsOneWidget);
-    expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+    expect(find.text('Firebase Not Available'), findsOneWidget);
+    expect(find.text('Running in offline mode for development.\nSome features may not work.'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Continue Anyway'), findsOneWidget);
   });
 }

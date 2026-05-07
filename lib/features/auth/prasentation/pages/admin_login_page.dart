@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meal_management/core/data/app_store.dart';
+import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/widgets/custom_button.dart';
 import 'package:meal_management/core/widgets/input_field.dart';
 import 'package:meal_management/features/admin/presentation/pages/admin_dashboard_page.dart';
@@ -13,11 +15,63 @@ class AdminLoginPage extends StatefulWidget {
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
   final _passKeyController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _passKeyController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loginAsAdmin() async {
+    final passkey = _passKeyController.text.trim();
+    if (passkey.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter passkey')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // For now, use a simple passkey check, but in production this should be more secure
+      if (passkey == AppStore.adminPassKey) {
+        // Check if there's a current user
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please login as a regular user first')),
+            );
+          }
+          return;
+        }
+
+        // Update user role to admin in Firestore
+        await FirestoreService().updateUser(currentUser.uid, {'role': 'admin'});
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid pass key. Try ADMIN1234')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Admin login failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -48,19 +102,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           ),
           const SizedBox(height: 16),
           CustomButton(
-            label: 'Login as admin',
-            onPressed: () {
-              final passkey = _passKeyController.text.trim();
-              if (passkey == AppStore.adminPassKey) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invalid pass key. Try ADMIN1234')),
-                );
-              }
-            },
+            label: _isLoading ? 'Setting up...' : 'Login as admin',
+            onPressed: _isLoading ? null : _loginAsAdmin,
           ),
         ],
       ),

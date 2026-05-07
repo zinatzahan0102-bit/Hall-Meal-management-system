@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:meal_management/core/data/app_store.dart';
+import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/theme/app_palette.dart';
 import 'package:meal_management/core/widgets/custom_card.dart';
-import 'package:meal_management/features/menu/presentation/pages/menu_detail_page.dart';
+import 'package:meal_management/features/auth/data/auth_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class MealsPage extends StatefulWidget {
@@ -22,19 +22,80 @@ class _MealsPageState extends State<MealsPage> {
   bool _todayMealOn = true;
   bool _tomorrowMealOn = false;
   final Map<DateTime, bool> _mealStatusByDate = {};
-  final AppStore _store = AppStore.instance;
+  final FirestoreService _firestore = FirestoreService();
 
   @override
   void initState() {
     super.initState();
-    _mealStatusByDate[_normalize(DateTime.now())] = true;
-    _mealStatusByDate[_normalize(DateTime.now().add(const Duration(days: 1)))] =
-        false;
+    _loadExistingMeals();
+    _loadUserPreferences();
+  }
+
+  Future<void> _loadExistingMeals() async {
+    final user = AuthService().currentUser;
+    if (user != null) {
+      final meals = await _firestore.getMeals(user.uid).first;
+      setState(() {
+        for (var meal in meals) {
+          final dateStr = meal['date'] as String?;
+          final status = meal['status'] as bool?;
+          if (dateStr != null && status != null) {
+            final date = DateTime.parse(dateStr);
+            _mealStatusByDate[_normalize(date)] = status;
+          }
+        }
+        // Update quick toggles based on loaded data
+        _todayMealOn = _mealStatusByDate[_normalize(DateTime.now())] ?? true;
+        _tomorrowMealOn = _mealStatusByDate[_normalize(DateTime.now().add(const Duration(days: 1)))] ?? false;
+      });
+    }
+  }
+
+  Future<void> _loadUserPreferences() async {
+    final user = AuthService().currentUser;
+    if (user != null) {
+      final preferences = await _firestore.getUserPreferences(user.uid);
+      if (preferences != null && preferences.containsKey('selectedDateRange')) {
+        final rangeData = preferences['selectedDateRange'] as Map<String, dynamic>;
+        setState(() {
+          _selectedRange = DateTimeRange(
+            start: DateTime.parse(rangeData['start']),
+            end: DateTime.parse(rangeData['end']),
+          );
+          _rangeStart = _selectedRange!.start;
+          _rangeEnd = _selectedRange!.end;
+          _focusedDay = _selectedRange!.start;
+        });
+      }
+    }
+  }
+
+  Future<void> _saveDateRange(DateTimeRange range) async {
+    final user = AuthService().currentUser;
+    if (user != null) {
+      final preferences = await _firestore.getUserPreferences(user.uid) ?? {};
+      preferences['selectedDateRange'] = {
+        'start': range.start.toIso8601String(),
+        'end': range.end.toIso8601String(),
+      };
+      await _firestore.saveUserPreferences(user.uid, preferences);
+    }
   }
 
   DateTime _normalize(DateTime day) => DateTime(day.year, day.month, day.day);
 
   bool? _statusForDay(DateTime day) => _mealStatusByDate[_normalize(day)];
+
+  Future<void> _saveMealStatus(DateTime date, bool status) async {
+    final user = AuthService().currentUser;
+    if (user != null) {
+      await _firestore.addMeal(user.uid, {
+        'date': date.toIso8601String(),
+        'status': status,
+        'timestamp': DateTime.now(),
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +122,12 @@ class _MealsPageState extends State<MealsPage> {
                   title: const Text('Today'),
                   value: _todayMealOn,
                   activeThumbColor: AppPallate.primary,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _todayMealOn = value;
                       _mealStatusByDate[_normalize(DateTime.now())] = value;
                     });
+                    await _saveMealStatus(DateTime.now(), value);
                   },
                 ),
                 SwitchListTile.adaptive(
@@ -73,12 +135,13 @@ class _MealsPageState extends State<MealsPage> {
                   title: const Text('Tomorrow'),
                   value: _tomorrowMealOn,
                   activeThumbColor: AppPallate.primary,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _tomorrowMealOn = value;
                       _mealStatusByDate[
                           _normalize(DateTime.now().add(const Duration(days: 1)))] = value;
                     });
+                    await _saveMealStatus(DateTime.now().add(const Duration(days: 1)), value);
                   },
                 ),
               ],
@@ -113,6 +176,7 @@ class _MealsPageState extends State<MealsPage> {
                             _focusedDay = range.start;
                             _selectedDay = null;
                           });
+                          await _saveDateRange(range);
                         }
                       },
                       child: const Text('Select'),
@@ -221,10 +285,10 @@ class _MealsPageState extends State<MealsPage> {
             ),
           ),
           const SizedBox(height: 12),
-          _DateMenuCard(
-            date: _selectedDay ?? _rangeStart ?? DateTime.now(),
-            menu: _store.menuForDate(_selectedDay ?? _rangeStart ?? DateTime.now()),
-          ),
+          // _DateMenuCard(
+          //   date: _selectedDay ?? _rangeStart ?? DateTime.now(),
+          //   menu: _store.menuForDate(_selectedDay ?? _rangeStart ?? DateTime.now()),
+          // ),
         ],
       ),
     );
@@ -266,7 +330,7 @@ class _MealsPageState extends State<MealsPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         setState(() {
                           _mealStatusByDate[key] = localStatus;
                           if (isSameDay(key, DateTime.now())) {
@@ -277,6 +341,7 @@ class _MealsPageState extends State<MealsPage> {
                             _tomorrowMealOn = localStatus;
                           }
                         });
+                        _saveMealStatus(day, localStatus);
                         Navigator.pop(context);
                       },
                       child: const Text('Save'),
@@ -314,51 +379,51 @@ class _LegendDot extends StatelessWidget {
   }
 }
 
-class _DateMenuCard extends StatelessWidget {
-  const _DateMenuCard({
-    required this.date,
-    required this.menu,
-  });
+// class _DateMenuCard extends StatelessWidget {
+//   const _DateMenuCard({
+//     required this.date,
+//     required this.menu,
+//   });
 
-  final DateTime date;
-  final DayMenu menu;
+//   final DateTime date;
+//   final DayMenu menu;
 
-  @override
-  Widget build(BuildContext context) {
-    return CustomCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Menu for ${date.day}/${date.month}/${date.year}',
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          ...menu.asList().map(
-            (meal) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: const Color(0xFFE5EFE5),
-                child: Text(meal.title.characters.first),
-              ),
-              title: Text(meal.title),
-              subtitle: Text(
-                meal.items.join(' • '),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: const Icon(Icons.open_in_new_rounded),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => MenuDetailPage(meal: meal, date: date),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return CustomCard(
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(
+//             'Menu for ${date.day}/${date.month}/${date.year}',
+//             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+//           ),
+//           const SizedBox(height: 8),
+//           ...menu.asList().map(
+//             (meal) => ListTile(
+//               contentPadding: EdgeInsets.zero,
+//               leading: CircleAvatar(
+//                 backgroundColor: const Color(0xFFE5EFE5),
+//                 child: Text(meal.title.characters.first),
+//               ),
+//               title: Text(meal.title),
+//               subtitle: Text(
+//                 meal.items.join(' • '),
+//                 maxLines: 1,
+//                 overflow: TextOverflow.ellipsis,
+//               ),
+//               trailing: const Icon(Icons.open_in_new_rounded),
+//               onTap: () {
+//                 Navigator.of(context).push(
+//                   MaterialPageRoute(
+//                     builder: (_) => MenuDetailPage(meal: meal, date: date),
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
