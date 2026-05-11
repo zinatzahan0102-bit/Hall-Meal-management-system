@@ -30,11 +30,14 @@ class MenuCard extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
             child: Stack(
               children: [
-                Image.network(
-                  imageUrl,
-                  height: 170,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+                Hero(
+                  tag: mealType,
+                  child: Image.network(
+                    imageUrl,
+                    height: 170,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 Container(
                   height: 170,
