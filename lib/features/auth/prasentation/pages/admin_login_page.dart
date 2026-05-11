@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:meal_management/core/data/app_store.dart';
+import 'package:meal_management/core/data/default_menu.dart';
 import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/widgets/custom_button.dart';
 import 'package:meal_management/core/widgets/input_field.dart';
@@ -35,9 +35,16 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      // For now, use a simple passkey check, but in production this should be more secure
-      if (passkey == AppStore.adminPassKey) {
-        // Check if there's a current user
+      final correctPasskey = await FirestoreService().getAdminPassKey();
+      
+      bool isCorrect = false;
+      if (correctPasskey != null) {
+        isCorrect = passkey == correctPasskey;
+      } else {
+        isCorrect = passkey == defaultAdminPassKey;
+      }
+
+      if (isCorrect) {
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser == null) {
           if (mounted) {
@@ -48,7 +55,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           return;
         }
 
-        // Update user role to admin in Firestore
         await FirestoreService().updateUser(currentUser.uid, {'role': 'admin'});
 
         if (mounted) {
@@ -59,7 +65,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid pass key. Try ADMIN1234')),
+            SnackBar(content: Text('Invalid pass key. Try ${correctPasskey ?? defaultAdminPassKey}')),
           );
         }
       }
@@ -70,7 +76,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
