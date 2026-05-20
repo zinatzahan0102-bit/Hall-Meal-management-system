@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meal Management - Home</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="mobile-frame">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+    
+    <!-- Mobile Content -->
+    <div class="mobile-content">
+      <!-- Home Header -->
+      <div class="home-header">
+        <div class="profile-info">
+          <h2>Hello, Zinat 👋</h2>
+          <p>Manage your meals smarter today</p>
+        </div>
+        <div class="avatar-circle" onclick="window.location.href='profile.html'">👤</div>
+      </div>
+      
+      <!-- Next Day Meal Status Toggle Card -->
+      <div class="card">
+        <div class="toggle-tile">
+          <div class="toggle-info">
+            <h3>Tomorrow's Meal Status</h3>
+            <p id="toggle-desc">Active meals for tomorrow (Breakfast, Lunch, Dinner)</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="tomorrow-meal-switch" checked onchange="toggleMealStatus()">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="timer-row">
+          <span>⏰</span>
+          <span>Cut-off time: 10:00 PM tonight</span>
+        </div>
+      </div>
+      
+      <!-- Section Title -->
+      <div class="section-title">Month Summary</div>
+      
+      <!-- Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="card metric-item">
+          <span class="label">Total Meals</span>
+          <span class="val">42</span>
+          <span class="sub">Breakfast, lunch, dinner</span>
+        </div>
+        <div class="card metric-item">
+          <span class="label">Running Bill</span>
+          <span class="val" style="color: var(--primary);">3,150 ৳</span>
+          <span class="sub">Month to date</span>
+        </div>
+        <div class="card metric-item">
+          <span class="label">Balance</span>
+          <span class="val" style="color: var(--danger);">-150 ৳</span>
+          <span class="sub">Remaining budget</span>
+        </div>
+        <div class="card metric-item">
+          <span class="label">Meal Rate</span>
+          <span class="val">75 ৳</span>
+          <span class="sub">Baseline cost / meal</span>
+        </div>
+      </div>
+      
+      <!-- Section Title -->
+      <div class="section-title" style="margin-top: 14px;">Today's Active Meals</div>
+      
+      <!-- Today's Active Meals Card -->
+      <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🍳</span>
+            <span style="font-size: 14px; font-weight: 600;">Breakfast</span>
+          </div>
+          <span class="badge-status resolved" style="font-size: 10px;">SERVED</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🍛</span>
+            <span style="font-size: 14px; font-weight: 600;">Lunch</span>
+          </div>
+          <span class="badge-status resolved" style="font-size: 10px;">SERVED</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🍗</span>
+            <span style="font-size: 14px; font-weight: 600;">Dinner</span>
+          </div>
+          <span class="badge-status pending" style="font-size: 10px;">ON TIME</span>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Persistent Bottom Navigation -->
+    <div class="bottom-nav">
+      <a class="bottom-nav-item active" href="home.html">
+        <span class="icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a class="bottom-nav-item" href="meals.html">
+        <span class="icon">📅</span>
+        <span>Meals</span>
+      </a>
+      <a class="bottom-nav-item" href="menu.html">
+        <span class="icon">📋</span>
+        <span>Menu</span>
+      </a>
+      <a class="bottom-nav-item" href="activity.html">
+        <span class="icon">📈</span>
+        <span>Activity</span>
+      </a>
+      <a class="bottom-nav-item" href="profile.html">
+        <span class="icon">👤</span>
+        <span>Profile</span>
+      </a>
+    </div>
+    
+    <!-- Home Indicator -->
+    <div class="home-indicator"></div>
+  </div>
+
+  <script>
+    function toggleMealStatus() {
+      const isChecked = document.getElementById('tomorrow-meal-switch').checked;
+      const desc = document.getElementById('toggle-desc');
+      if (isChecked) {
+        desc.textContent = "Active meals for tomorrow (Breakfast, Lunch, Dinner)";
+      } else {
+        desc.textContent = "No meals scheduled for tomorrow (OFF)";
+      }
+    }
+  </script>
+</body>
+</html>

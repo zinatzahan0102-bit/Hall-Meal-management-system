@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meal Management - Complaint</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-screen="complaint">
+  <div class="page">
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark">B</div>
+          <div>
+            <h1 class="brand-title">Complaint Box</h1>
+            <p class="brand-subtitle">Submit issues with the same Flutter styling</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="pill">📝 Feedback</div>
+          <div class="pill">🖼️ Optional image</div>
+        </div>
+      </header>
+
+      <section class="hero-card">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <div class="badge">Complaint Flow</div>
+            <h1>Report food or service problems in a clean form layout.</h1>
+            <p>
+              This export mirrors the complaint page's input structure while keeping the same
+              green-white palette, rounded fields, and elevated button treatment.
+            </p>
+          </div>
+          <div class="hero-side">
+            <div class="mini-panel"><strong>Types</strong><span>Food quality, service, suggestions, and others.</span></div>
+            <div class="mini-panel"><strong>Attachments</strong><span>Image upload is optional for a detailed report.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <div class="surface-card">
+          <div class="section-head">
+            <div>
+              <h2>Complaint form</h2>
+              <p>Ready for Figma import as a polished mobile/tablet page.</p>
+            </div>
+            <span class="tag">Submit issue</span>
+          </div>
+
+          <div class="field">
+            <label for="type">Complaint type</label>
+            <select class="select" id="type">
+              <option>Food Quality</option>
+              <option>Service</option>
+              <option>Suggestion</option>
+              <option>Others</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="desc">Description</label>
+            <textarea class="textarea" id="desc" rows="6" placeholder="Describe your issue..."></textarea>
+          </div>
+
+          <div class="actions-row">
+            <button class="btn btn-soft" type="button">Upload photo (optional)</button>
+            <button class="btn btn-primary" type="button">Submit Complaint</button>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <div class="section-head">
+            <div>
+              <h3>Complaint status</h3>
+              <p>How the page feels in the app</p>
+            </div>
+          </div>
+          <div class="stack-list">
+            <div class="data-card">
+              <span class="data-label">Food quality</span>
+              <span class="data-value">Open</span>
+              <span class="data-help">Active complaint type from the dropdown</span>
+            </div>
+            <div class="data-card">
+              <span class="data-label">Submission state</span>
+              <span class="data-value">Ready</span>
+              <span class="data-help">Button becomes active after validation</span>
+            </div>
+          </div>
+          <div class="nav-bar">
+            <a class="nav-item" data-nav="home" href="home.html"><span class="nav-icon">🏠</span>Home</a>
+            <a class="nav-item" data-nav="meals" href="meals.html"><span class="nav-icon">🍽️</span>Meals</a>
+            <a class="nav-item" data-nav="menu" href="menu.html"><span class="nav-icon">📋</span>Menu</a>
+            <a class="nav-item" data-nav="activity" href="activity.html"><span class="nav-icon">📈</span>Activity</a>
+            <a class="nav-item" data-nav="profile" href="profile.html"><span class="nav-icon">👤</span>Profile</a>
+          </div>
+        </aside>
+      </section>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

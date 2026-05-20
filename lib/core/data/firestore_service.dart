@@ -3,9 +3,17 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:meal_management/core/data/default_menu.dart';
 
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore? get _firestore {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (e) {
+      debugPrint('FirebaseFirestore unavailable: $e');
+      return null;
+    }
+  }
   final Map<int, Map<String, dynamic>?> _menuCache = {};
 
   // Upload image to Cloudinary and return download URL
@@ -40,7 +48,10 @@ class FirestoreService {
   // Add user data
   Future<void> addUser(String userId, Map<String, dynamic> userData) async {
     try {
-      await _firestore.collection('users').doc(userId).set({
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore.collection('users').doc(userId).set({
         ...userData,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -55,7 +66,10 @@ class FirestoreService {
   // Get user data
   Future<Map<String, dynamic>?> getUser(String userId) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+      final firestore = _firestore;
+      if (firestore == null) return null;
+
+      DocumentSnapshot doc = await firestore.collection('users').doc(userId).get();
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>;
       }
@@ -69,7 +83,10 @@ class FirestoreService {
   // Update user data
   Future<void> updateUser(String userId, Map<String, dynamic> userData) async {
     try {
-      await _firestore.collection('users').doc(userId).update({
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore.collection('users').doc(userId).update({
         ...userData,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -83,10 +100,13 @@ class FirestoreService {
   // Add or update a meal document
   Future<void> addMeal(String userId, Map<String, dynamic> mealData) async {
     try {
+      final firestore = _firestore;
+      if (firestore == null) return;
+
       final date = mealData['date'] as String;
 
       // Check if meal already exists for this date
-      final existingMeals = await _firestore
+        final existingMeals = await firestore
           .collection('users')
           .doc(userId)
           .collection('meals')
@@ -102,7 +122,7 @@ class FirestoreService {
         debugPrint('Meal updated for user $userId on date $date');
       } else {
         // Add new meal
-        await _firestore
+        await firestore
             .collection('users')
             .doc(userId)
             .collection('meals')
@@ -121,7 +141,10 @@ class FirestoreService {
   // Get meals for a user
   Stream<List<Map<String, dynamic>>> getMeals(String userId) {
     try {
-      return _firestore
+      final firestore = _firestore;
+      if (firestore == null) return Stream.value([]);
+
+      return firestore
           .collection('users')
           .doc(userId)
           .collection('meals')
@@ -144,7 +167,17 @@ class FirestoreService {
   // Get meal stats for user
   Future<Map<String, dynamic>> getMealStats(String userId) async {
     try {
-      QuerySnapshot mealsSnapshot = await _firestore
+      final firestore = _firestore;
+      if (firestore == null) {
+        return {
+          'totalMeals': 0,
+          'totalBill': 0.0,
+          'remaining': 1150.0,
+          'mealRate': 75.0,
+        };
+      }
+
+      QuerySnapshot mealsSnapshot = await firestore
           .collection('users')
           .doc(userId)
           .collection('meals')
@@ -152,7 +185,7 @@ class FirestoreService {
           .get();
 
       // Read settings for fallback
-      final settingsDoc = await _firestore.collection('config').doc('meal_settings').get();
+      final settingsDoc = await firestore.collection('config').doc('meal_settings').get();
       double mealRate = 75.0;
       double monthlyLimit = 1150.0;
       if (settingsDoc.exists) {
@@ -208,7 +241,17 @@ class FirestoreService {
 
   // Get meal stats stream for user
   Stream<Map<String, dynamic>> getMealStatsStream(String userId) {
-    return _firestore
+    final firestore = _firestore;
+    if (firestore == null) {
+      return Stream.value({
+        'totalMeals': 0,
+        'totalBill': 0.0,
+        'remaining': 1150.0,
+        'mealRate': 75.0,
+      });
+    }
+
+    return firestore
         .collection('users')
         .doc(userId)
         .collection('meals')
@@ -216,7 +259,7 @@ class FirestoreService {
         .snapshots()
         .asyncMap((snapshot) async {
           // Read settings for fallback
-          final settingsDoc = await _firestore.collection('config').doc('meal_settings').get();
+          final settingsDoc = await firestore.collection('config').doc('meal_settings').get();
           double mealRate = 75.0;
           double monthlyLimit = 1150.0;
           if (settingsDoc.exists) {
@@ -265,7 +308,10 @@ class FirestoreService {
   // Add complaint
   Future<void> addComplaint(String userId, Map<String, dynamic> complaintData) async {
     try {
-      await _firestore.collection('complaints').add({
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore.collection('complaints').add({
         'userId': userId,
         ...complaintData,
         'status': 'pending',
@@ -281,7 +327,10 @@ class FirestoreService {
   // Get complaints for user
   Stream<List<Map<String, dynamic>>> getComplaints(String userId) {
     try {
-      return _firestore
+      final firestore = _firestore;
+      if (firestore == null) return Stream.value([]);
+
+      return firestore
           .collection('complaints')
           .where('userId', isEqualTo: userId)
           .orderBy('timestamp', descending: true)
@@ -303,7 +352,10 @@ class FirestoreService {
   // Admin: Get all users
   Stream<List<Map<String, dynamic>>> getAllUsers() {
     try {
-      return _firestore
+      final firestore = _firestore;
+      if (firestore == null) return Stream.value([]);
+
+      return firestore
           .collection('users')
           .orderBy('createdAt', descending: true)
           .snapshots()
@@ -324,7 +376,10 @@ class FirestoreService {
   // Admin: Get all complaints
   Stream<List<Map<String, dynamic>>> getAllComplaints() {
     try {
-      return _firestore
+      final firestore = _firestore;
+      if (firestore == null) return Stream.value([]);
+
+      return firestore
           .collection('complaints')
           .orderBy('timestamp', descending: true)
           .snapshots()
@@ -345,7 +400,10 @@ class FirestoreService {
   // Admin: Update complaint status
   Future<void> updateComplaintStatus(String complaintId, String status) async {
     try {
-      await _firestore.collection('complaints').doc(complaintId).update({
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore.collection('complaints').doc(complaintId).update({
         'status': status,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -359,7 +417,10 @@ class FirestoreService {
   // Save user preferences (including date range)
   Future<void> saveUserPreferences(String userId, Map<String, dynamic> preferences) async {
     try {
-      await _firestore.collection('users').doc(userId).update({
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore.collection('users').doc(userId).update({
         'preferences': preferences,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -373,7 +434,10 @@ class FirestoreService {
   // Get user preferences
   Future<Map<String, dynamic>?> getUserPreferences(String userId) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+      final firestore = _firestore;
+      if (firestore == null) return null;
+
+      DocumentSnapshot doc = await firestore.collection('users').doc(userId).get();
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
         return data['preferences'] as Map<String, dynamic>?;
@@ -388,7 +452,10 @@ class FirestoreService {
   // Add a meal review
   Future<void> addReview(String userId, Map<String, dynamic> reviewData) async {
     try {
-      await _firestore
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore
           .collection('users')
           .doc(userId)
           .collection('reviews')
@@ -405,7 +472,10 @@ class FirestoreService {
 
   // Get reviews stream
   Stream<List<Map<String, dynamic>>> getReviews(String userId) {
-    return _firestore
+    final firestore = _firestore;
+    if (firestore == null) return Stream.value([]);
+
+    return firestore
         .collection('users')
         .doc(userId)
         .collection('reviews')
@@ -416,9 +486,38 @@ class FirestoreService {
             .toList());
   }
 
+  // Get stream of all menus for the week merged with defaults
+  Stream<Map<int, Map<String, dynamic>>> getWeeklyMenuStream() {
+    final firestore = _firestore;
+    if (firestore == null) {
+      return Stream.value(defaultWeeklyMenu);
+    }
+    return firestore
+        .collection('menus')
+        .snapshots()
+        .map((snapshot) {
+          final Map<int, Map<String, dynamic>> weeklyMenu = {};
+          // Initialize with default menu values
+          defaultWeeklyMenu.forEach((key, value) {
+            weeklyMenu[key] = Map<String, dynamic>.from(value);
+          });
+          
+          for (var doc in snapshot.docs) {
+            final id = int.tryParse(doc.id);
+            if (id != null) {
+              weeklyMenu[id] = doc.data();
+            }
+          }
+          return weeklyMenu;
+        });
+  }
+
   // Get menu for a specific weekday (1 = Monday, 7 = Sunday)
   Stream<Map<String, dynamic>?> getMenu(int weekday) {
-    return _firestore
+    final firestore = _firestore;
+    if (firestore == null) return Stream.value(null);
+
+    return firestore
         .collection('menus')
         .doc(weekday.toString())
         .snapshots()
@@ -430,7 +529,10 @@ class FirestoreService {
     if (_menuCache.containsKey(weekday)) {
       return _menuCache[weekday];
     }
-    final doc = await _firestore.collection('menus').doc(weekday.toString()).get();
+    final firestore = _firestore;
+    if (firestore == null) return null;
+
+    final doc = await firestore.collection('menus').doc(weekday.toString()).get();
     final data = doc.exists ? doc.data() : null;
     _menuCache[weekday] = data;
     return data;
@@ -439,7 +541,10 @@ class FirestoreService {
   // Update menu for a specific weekday
   Future<void> updateMenu(int weekday, Map<String, dynamic> menuData) async {
     try {
-      await _firestore
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore
           .collection('menus')
           .doc(weekday.toString())
           .set(menuData, SetOptions(merge: true));
@@ -453,7 +558,10 @@ class FirestoreService {
   // Get admin passkey from Firestore
   Future<String?> getAdminPassKey() async {
     try {
-      final doc = await _firestore.collection('config').doc('admin').get();
+      final firestore = _firestore;
+      if (firestore == null) return null;
+
+      final doc = await firestore.collection('config').doc('admin').get();
       if (doc.exists) {
         final data = doc.data();
         return data?['passkey'] as String?;
@@ -467,7 +575,15 @@ class FirestoreService {
 
   // Get meal settings stream
   Stream<Map<String, dynamic>> getMealSettingsStream() {
-    return _firestore
+    final firestore = _firestore;
+    if (firestore == null) {
+      return Stream.value({
+        'mealRate': 75.0,
+        'monthlyLimit': 1150.0,
+      });
+    }
+
+    return firestore
         .collection('config')
         .doc('meal_settings')
         .snapshots()
@@ -485,7 +601,10 @@ class FirestoreService {
   // Update meal settings
   Future<void> updateMealSettings(Map<String, dynamic> settings) async {
     try {
-      await _firestore
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      await firestore
           .collection('config')
           .doc('meal_settings')
           .set(settings, SetOptions(merge: true));

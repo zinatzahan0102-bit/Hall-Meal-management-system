@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meal Management - Sign Up</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="auth-page">
+  <div class="mobile-frame">
+    <!-- Auth Background & Glow blobs -->
+    <div class="auth-bg"></div>
+    <div class="auth-glow-1"></div>
+    <div class="auth-glow-2"></div>
+    
+    <div class="auth-container" style="justify-content: flex-start; gap: 14px; overflow-y: auto; padding-bottom: 24px;">
+      <!-- Status Bar -->
+      <div class="status-bar" style="margin-bottom: 4px;">
+        <span class="time">9:41</span>
+        <div class="icons">
+          <span>📶</span>
+          <span>🔋</span>
+        </div>
+      </div>
+      
+      <div class="auth-header" style="margin-top: 10px; margin-bottom: 4px;">
+        <div class="auth-badge">
+          <span class="auth-badge-dot"></span>
+          <span>Register Account</span>
+        </div>
+        <h1 style="font-size: 24px;">Create your<br>account</h1>
+      </div>
+      
+      <div class="auth-card" style="gap: 12px; padding: 20px;">
+        <div class="field">
+          <label for="name">Full Name</label>
+          <input class="input" id="name" type="text" placeholder="John Doe" value="Zinat Zahan" />
+        </div>
+
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input class="input" id="email" type="email" placeholder="student@example.com" value="zinat@example.com" />
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <div class="field" style="flex: 1;">
+            <label for="room">Room No</label>
+            <input class="input" id="room" type="text" placeholder="302" value="405" />
+          </div>
+          <div class="field" style="flex: 1;">
+            <label for="student-id">Student ID</label>
+            <input class="input" id="student-id" type="text" placeholder="2020-1-60" value="2021-1-60-032" />
+          </div>
+        </div>
+        
+        <div class="field">
+          <label for="password">Password</label>
+          <input class="input" id="password" type="password" placeholder="••••••••" value="password123" />
+        </div>
+        
+        <button class="btn btn-primary" style="margin-top: 6px;" onclick="window.location.href='home.html'">Sign Up</button>
+        
+        <div style="text-align: center; font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+          Already have an account? <a href="index.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign In</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Home Indicator -->
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meal_management/core/data/firestore_service.dart';
 import 'package:meal_management/core/data/default_menu.dart';
 import 'package:meal_management/features/activity/presentation/pages/activity_page.dart';
@@ -38,7 +37,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   }
 
   Future<void> _checkAdminRole() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService().currentUser;
     if (user != null) {
       final userData = await FirestoreService().getUser(user.uid);
       if (userData?['role'] == 'admin') {

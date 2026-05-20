@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meal Management - Admin Home</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-screen="admin-home">
+  <div class="page">
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <h1 class="brand-title">Admin Home</h1>
+            <p class="brand-subtitle">Student management, settings, and oversight</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="pill">🔐 Passcode</div>
+          <div class="pill">🧩 Controls</div>
+        </div>
+      </header>
+
+      <section class="hero-card">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <div class="badge">Administration</div>
+            <h1>Keep the admin landing page visually aligned with the rest of the app.</h1>
+            <p>
+              The admin home export uses the same green gradient and white content cards while
+              highlighting the high-level controls from the Flutter dashboard.
+            </p>
+          </div>
+          <div class="hero-side">
+            <div class="mini-panel"><strong>Students</strong><span>Add, review, and manage users.</span></div>
+            <div class="mini-panel"><strong>Meals</strong><span>Adjust rates, limits, and cut-off rules.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <div class="stack">
+          <div class="surface-card">
+            <div class="section-head">
+              <div>
+                <h2>Overview</h2>
+                <p>Quick summary blocks for the admin starting point.</p>
+              </div>
+            </div>
+            <div class="card-grid">
+              <div class="data-card">
+                <span class="data-label">Total users</span>
+                <span class="data-value">148</span>
+                <span class="data-help">Students and admins combined</span>
+              </div>
+              <div class="data-card">
+                <span class="data-label">Open complaints</span>
+                <span class="data-value">5</span>
+                <span class="data-help">Items waiting for review</span>
+              </div>
+              <div class="data-card">
+                <span class="data-label">Meal settings</span>
+                <span class="data-value">75</span>
+                <span class="data-help">Default meal rate</span>
+              </div>
+              <div class="data-card">
+                <span class="data-label">Cut-off</span>
+                <span class="data-value">10 PM</span>
+                <span class="data-help">Schedule lock time</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="section-head">
+              <div>
+                <h2>Admin actions</h2>
+                <p>Primary task shortcuts</p>
+              </div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-primary">Manage Students</button>
+              <button class="btn btn-soft">Edit Meal Policy</button>
+              <button class="btn btn-soft">Review Complaints</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <div class="section-head">
+            <div>
+              <h3>Navigation</h3>
+              <p>Shared shell</p>
+            </div>
+          </div>
+          <div class="nav-bar">
+            <a class="nav-item" data-nav="home" href="home.html"><span class="nav-icon">🏠</span>Home</a>
+            <a class="nav-item" data-nav="meals" href="meals.html"><span class="nav-icon">🍽️</span>Meals</a>
+            <a class="nav-item" data-nav="menu" href="menu.html"><span class="nav-icon">📋</span>Menu</a>
+            <a class="nav-item" data-nav="activity" href="activity.html"><span class="nav-icon">📈</span>Activity</a>
+            <a class="nav-item" data-nav="profile" href="profile.html"><span class="nav-icon">👤</span>Profile</a>
+          </div>
+        </aside>
+      </section>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -59,40 +59,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     // If Firebase is not initialized, show a message
     if (!firebaseInitialized) {
-      return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                const Text(
-                  'Firebase Not Available',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Running in offline mode for development.\nSome features may not work.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const MainNavigationPage()),
-                      (route) => false,
-                    );
-                  },
-                  child: const Text('Continue Anyway'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      return const MainNavigationPage();
     }
 
     return StreamBuilder<User?>(

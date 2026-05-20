@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meal Management - Daily Menu</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="mobile-frame">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+    
+    <!-- Mobile Content -->
+    <div class="mobile-content">
+      <!-- App Bar -->
+      <div class="app-bar" style="padding: 0;">
+        <span class="title">Daily Menu</span>
+        <button class="btn-icon">🔍</button>
+      </div>
+      
+      <!-- Weekday horizontal selector mockup -->
+      <div style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px 0; margin-bottom: 8px; scrollbar-width: none; -ms-overflow-style: none;">
+        <div style="padding: 8px 16px; border-radius: 20px; background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;">Mon</div>
+        <div style="padding: 8px 16px; border-radius: 20px; background: var(--primary); color: #FFF; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 12px rgba(46,125,50,0.25);">Tue</div>
+        <div style="padding: 8px 16px; border-radius: 20px; background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;">Wed</div>
+        <div style="padding: 8px 16px; border-radius: 20px; background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;">Thu</div>
+        <div style="padding: 8px 16px; border-radius: 20px; background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;">Fri</div>
+        <div style="padding: 8px 16px; border-radius: 20px; background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;">Sat</div>
+        <div style="padding: 8px 16px; border-radius: 20px; background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;">Sun</div>
+      </div>
+      
+      <!-- Breakfast Card -->
+      <div class="menu-tab-card">
+        <div class="menu-img" style="background-image: url('https://images.unsplash.com/photo-1525351484163-7529414344d8?w=500&auto=format&fit=crop');">
+          <div class="menu-img-overlay"></div>
+          <span class="menu-type-tag">🍳 Breakfast (8:00 AM)</span>
+        </div>
+        <div class="menu-items-list">
+          <div class="menu-food-item">Toasted Bread & Egg Omelette</div>
+          <div class="menu-food-item">Semolina Halwa</div>
+          <div class="menu-food-item">Milk Tea</div>
+        </div>
+      </div>
+      
+      <!-- Lunch Card -->
+      <div class="menu-tab-card">
+        <div class="menu-img" style="background-image: url('https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=500&auto=format&fit=crop');">
+          <div class="menu-img-overlay"></div>
+          <span class="menu-type-tag">🍛 Lunch (1:30 PM)</span>
+        </div>
+        <div class="menu-items-list">
+          <div class="menu-food-item">Steamed Rice</div>
+          <div class="menu-food-item">Chicken Curry with Potatoes</div>
+          <div class="menu-food-item">Thick Red Lentil (Dal)</div>
+          <div class="menu-food-item">Mixed Vegetable Bhaji</div>
+        </div>
+      </div>
+      
+      <!-- Dinner Card -->
+      <div class="menu-tab-card">
+        <div class="menu-img" style="background-image: url('https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500&auto=format&fit=crop');">
+          <div class="menu-img-overlay"></div>
+          <span class="menu-type-tag">🍗 Dinner (8:30 PM)</span>
+        </div>
+        <div class="menu-items-list">
+          <div class="menu-food-item">Steamed Rice</div>
+          <div class="menu-food-item">Rui Fish Curry</div>
+          <div class="menu-food-item">Tomato & Cucumber Salad</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Persistent Bottom Navigation -->
+    <div class="bottom-nav">
+      <a class="bottom-nav-item" href="home.html">
+        <span class="icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a class="bottom-nav-item" href="meals.html">
+        <span class="icon">📅</span>
+        <span>Meals</span>
+      </a>
+      <a class="bottom-nav-item active" href="menu.html">
+        <span class="icon">📋</span>
+        <span>Menu</span>
+      </a>
+      <a class="bottom-nav-item" href="activity.html">
+        <span class="icon">📈</span>
+        <span>Activity</span>
+      </a>
+      <a class="bottom-nav-item" href="profile.html">
+        <span class="icon">👤</span>
+        <span>Profile</span>
+      </a>
+    </div>
+    
+    <!-- Home Indicator -->
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

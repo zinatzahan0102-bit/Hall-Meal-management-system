@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meal Management - Profile</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-screen="profile">
+  <div class="page">
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark">M</div>
+          <div>
+            <h1 class="brand-title">Profile</h1>
+            <p class="brand-subtitle">Account, settings, and preferences</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="pill">⚙️ Settings</div>
+          <div class="pill">🔒 Security</div>
+        </div>
+      </header>
+
+      <section class="content-grid profile-layout">
+        <div class="surface-card avatar-block">
+          <div class="avatar">👤</div>
+          <h2>User Name</h2>
+          <p>Student account</p>
+          <div class="actions-row" style="justify-content:center">
+            <button class="btn btn-primary">Edit Profile</button>
+            <button class="btn btn-soft">Sign Out</button>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="surface-card">
+            <div class="section-head">
+              <div>
+                <h2>Account details</h2>
+                <p>Rounded cards and clean form fields aligned with the Flutter theme.</p>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <strong>Email</strong>
+                <div class="list-muted">student@example.com</div>
+              </div>
+              <span class="tag">Verified</span>
+            </div>
+            <div class="settings-row">
+              <div>
+                <strong>Hall</strong>
+                <div class="list-muted">Residence Hall A</div>
+              </div>
+              <span class="tag">Active</span>
+            </div>
+            <div class="settings-row">
+              <div>
+                <strong>Meal preference</strong>
+                <div class="list-muted">Default routine and admin passcode support</div>
+              </div>
+              <span class="tag">Routine</span>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="section-head">
+              <div>
+                <h2>Navigation</h2>
+                <p>Bottom tabs preserved across every screen.</p>
+              </div>
+            </div>
+            <div class="nav-bar">
+              <a class="nav-item" data-nav="home" href="home.html"><span class="nav-icon">🏠</span>Home</a>
+              <a class="nav-item" data-nav="meals" href="meals.html"><span class="nav-icon">🍽️</span>Meals</a>
+              <a class="nav-item" data-nav="menu" href="menu.html"><span class="nav-icon">📋</span>Menu</a>
+              <a class="nav-item" data-nav="activity" href="activity.html"><span class="nav-icon">📈</span>Activity</a>
+              <a class="nav-item active" data-nav="profile" href="profile.html"><span class="nav-icon">👤</span>Profile</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
